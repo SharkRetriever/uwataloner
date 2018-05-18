@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.rayzz.uwataloner.MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="6"
+            android:text="UWatALoner"
+            android:textSize="55sp"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/studyAloneButton"
+            android:onClick="studyAloneButtonOnClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:text="Find a study room" />
+
+        <Button
+            android:id="@+id/auditCourseButton"
+            android:onClick="auditCourseButtonOnClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:text="Audit a course" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:layout_gravity="fill" />
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

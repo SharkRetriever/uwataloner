@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.rayzz.uwataloner.StudyAloneChooseBuildingActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="40sp"
+            android:layout_margin="5dp"
+            android:text="Choose the building" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_margin="7dp"
+            android:text="Enter a building code (such as &quot;MC&quot;)" />
+
+        <AutoCompleteTextView
+            android:id="@+id/chooseBuildingText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:ems="5"
+            android:inputType="text"
+            android:hint="Building code or query"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_margin="7dp"
+            android:text="Optional: Enter a room number (such as &quot;4020&quot;)" />
+
+        <AutoCompleteTextView
+            android:id="@+id/chooseRoomText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:ems="5"
+            android:inputType="text"
+            android:hint="Room number"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_margin="7dp"
+            android:text="Choose the time you want to study at the room" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chooseTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:text="99:99" />
+
+            <Button
+                android:id="@+id/chooseTimeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="chooseTimeButtonOnClick"
+                android:text="Edit" />
+        </LinearLayout>
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="3" />
+
+        <Button
+            android:id="@+id/chooseBuildingNextButton"
+            android:onClick="chooseBuildingNextButtonOnClick"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:layout_gravity="end"
+            android:layout_marginBottom="30dp"
+            android:text="Next" />
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>
