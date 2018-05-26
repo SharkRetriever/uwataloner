@@ -69,7 +69,7 @@ class AuditCourseChooseSubjectActivity : AppCompatActivity() {
 
     fun chooseSubjectNextButtonOnClick(view: View) {
         val intent = Intent(this, AuditCourseChooseCourseActivity::class.java)
-        val chosenSubjectAcronym: String = chooseSubjectText.text.toString().trim().split(" ")[0]
+        val chosenSubjectAcronym: String = chooseSubjectText.text.split(" ")[0]
         val chosenSubjectText: String = chooseSubjectText.text.toString().trim()
 
         if (!parsedSubjects.any { it == chosenSubjectText }) {

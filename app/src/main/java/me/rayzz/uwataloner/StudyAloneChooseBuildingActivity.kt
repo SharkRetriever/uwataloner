@@ -20,14 +20,12 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.TimePicker
 import kotlinx.android.synthetic.main.activity_study_alone_choose_building.*
-import me.rayzz.uwataloner.base.UWaterlooAPIRequestManager
-import me.rayzz.uwataloner.studyalonetoolkit.ValidRoomsListRetriever
+import me.rayzz.uwataloner.generatedapiobjects.BuildingRoomsListMap
 import org.joda.time.DateTime
 import java.util.*
 
 class StudyAloneChooseBuildingActivity : AppCompatActivity() {
 
-    private val webRequestManager = UWaterlooAPIRequestManager()
     private val chosenBuildingString: String = "chosenCourse"
     private val chosenRoomString: String = "chosenRoom"
     private val chosenTimeString: String = "chosenTime"
@@ -42,9 +40,7 @@ class StudyAloneChooseBuildingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_study_alone_choose_building)
 
-        val validRoomsListRetriever = ValidRoomsListRetriever(application.assets)
-        validRoomsListRetriever.initializeRoomsList() // TODO: make this async since beginning of load
-        val validRoomsList: HashMap<String, List<String>> = validRoomsListRetriever.getRoomsList()
+        val validRoomsList: HashMap<String, List<String>> = BuildingRoomsListMap.getBuildingRoomsListMap()
         setTimeToCurrentTime()
         setBuildingComboBox(validRoomsList.keys)
 
@@ -117,18 +113,20 @@ class StudyAloneChooseBuildingActivity : AppCompatActivity() {
     }
 
     fun chooseBuildingNextButtonOnClick(view: View) {
-        val chosenBuilding: String = chooseBuildingText.text.toString().trimStart().split(" ")[0]
+        val chosenBuilding: String = chooseBuildingText.text.toString().trim()
+        val chosenBuildingCode: String = chosenBuilding.split(" ")[0]
         val chosenRoom: String = chooseRoomText.text.toString()
         val chosenTime: String = chooseTimeText.text.toString()
 
-        // TODO: this should just be checked against buildingList alone -- exclude the need for secret rooms
-        if (!webRequestManager.isValidWebPageJson("/buildings/%s/%s/courses".format(chosenBuilding, chosenRoom))) {
+        val validRoomsList: HashMap<String, List<String>> = BuildingRoomsListMap.getBuildingRoomsListMap()
+        // use != true since the boolean is nullable
+        if (!(validRoomsList.containsKey(chosenBuilding) && (validRoomsList[chosenBuilding]?.contains(chosenRoom)) == true)) {
             showInvalidInputDialog()
             return
         }
 
         val intent = Intent(this, StudyAloneViewResultsActivity::class.java)
-        intent.putExtra("chosenBuilding", chosenBuilding)
+        intent.putExtra("chosenBuilding", chosenBuildingCode)
         intent.putExtra("chosenRoom", chosenRoom)
         intent.putExtra("chosenTime", chosenTime)
 
