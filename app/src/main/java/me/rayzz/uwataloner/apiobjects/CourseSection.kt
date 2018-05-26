@@ -30,7 +30,7 @@ class CourseSection(val subject: String, val catalogNumber: String,
             }
             (enrollmentTotal == enrollmentCapacity) -> {
                 val warningString = "WARNING: at capacity"
-                "s\n%s\n%s\n%s".format(warningString, subjectString, sectionString, offeringTimes)
+                "%s\n%s\n%s\n%s".format(warningString, subjectString, sectionString, offeringTimes)
             }
             else -> {
                 "%s\n%s\n%s".format(subjectString, sectionString, offeringTimes)

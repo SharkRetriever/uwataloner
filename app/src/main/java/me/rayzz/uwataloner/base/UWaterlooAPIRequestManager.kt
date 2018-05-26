@@ -41,7 +41,7 @@ class UWaterlooAPIRequestManager {
             return true
         }
 
-        resultingObjectStatusCode = resultingObjectMeta.asObject().getInt("status", 0)
+        resultingObjectStatusCode = JsonFieldExtractor.extractIntValue(resultingObjectMeta, "status")
         if (resultingObjectStatusCode != 200) {
             return true
         }
