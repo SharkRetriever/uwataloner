@@ -32,7 +32,6 @@ class AuditCourseViewResultsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audit_course_view_results)
 
-
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(chosenSubjectString) &&
                 savedInstanceState.containsKey(chosenCourseString)) {

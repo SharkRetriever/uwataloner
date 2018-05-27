@@ -63,8 +63,12 @@ object CourseSectionFactory {
                     throw InvalidParameterException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
                 }
 
-                val enrollmentCapacity: Int = currentCourseOffering.asObject().getInt("enrollment_capacity", 0)
-                val enrollmentTotal: Int = currentCourseOffering.asObject().getInt("enrollment_total", 0)
+                if (!(section.startsWith("LEC") || section.startsWith("TUT") || section.startsWith("SEM")) || section == "LEC 081") {
+                    continue
+                }
+
+                val enrollmentCapacity: Int = JsonFieldExtractor.extractIntValue(currentCourseOffering, "enrollment_capacity")
+                val enrollmentTotal: Int = JsonFieldExtractor.extractIntValue(currentCourseOffering,"enrollment_total")
                 val parsedOfferings: List<Offering> = parseCourseOfferingsJson(currentCourseOffering)
 
                 courseSectionsList.add(CourseSection(subject, catalogNumber, title,
