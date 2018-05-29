@@ -17,6 +17,11 @@ import java.util.*
  */
 class SectionDateTime(val startTime: String, val endTime: String,
                       val weekdays: String, val startDate: String, val endDate: String) {
+    fun isValid(): Boolean {
+        return (startTime.isNotEmpty() && endTime.isNotEmpty() &&
+                (weekdays.isNotEmpty() || (startDate.isNotEmpty() && endDate.isNotEmpty())))
+    }
+
     private fun getWeekdays(): List<Int> {
         val weekdaysList = LinkedList<Int>()
         if (weekdays.contains("M"))

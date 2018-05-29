@@ -17,9 +17,9 @@ class Offering(val sectionDateTime: SectionDateTime,
                val isTba: Boolean, val isCancelled: Boolean, val isClosed: Boolean) {
     override fun toString(): String {
         // currently used in CourseSection for auditing courses
-        val buildingString: String = "In building: %s %s".format(building, room)
-        val dateString: String = "Offered: " + sectionDateTime.toString()
-        val instructorsString: String = "Taught by: " + instructors.joinToString(CharacterRepository.INSTRUCTORS_SEPARATOR)
+        val buildingString: String = if (building.isNotEmpty()) "In building: %s %s".format(building, room) else "Location TBA or online"
+        val dateString: String = "Offered: " + if (sectionDateTime.isValid()) sectionDateTime.toString() else "N/A"
+        val instructorsString: String = "Taught by: " + if (instructors.isNotEmpty()) instructors.joinToString(CharacterRepository.INSTRUCTORS_SEPARATOR) else "TBA"
         return "%s\n%s\n%s".format(buildingString, dateString, instructorsString)
     }
 }

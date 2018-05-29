@@ -63,7 +63,7 @@ object CourseSectionFactory {
                     throw InvalidParameterException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
                 }
 
-                if (!(section.startsWith("LEC") || section.startsWith("TUT") || section.startsWith("SEM")) || section == "LEC 081") {
+                if (!(section.startsWith("LEC") || section.startsWith("TUT") || section.startsWith("SEM"))) {
                     continue
                 }
 
@@ -106,8 +106,7 @@ object CourseSectionFactory {
                 val isClosed: Boolean = JsonFieldExtractor.extractBooleanValue(date, "is_closed")
                 val instructors: MutableList<String> = mutableListOf()
 
-                if (!(isCancelled || isClosed || isTba) &&
-                    (date == null || location == null || building.isEmpty() || room.isEmpty())) {
+                if (!(isCancelled || isClosed || isTba) && (date == null || location == null)) {
                     throw InvalidParameterException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
                 }
                 else {
@@ -131,8 +130,12 @@ object CourseSectionFactory {
                     }
 
                     val sectionDateTime = SectionDateTime(startTime, endTime, weekdays, startDate, endDate)
-                    courseOfferingsList.add(Offering(sectionDateTime, building, room, instructors,
-                            isTba, isCancelled, isClosed))
+
+                    // for now, don't add sections that aren't open
+                    if (!(isTba || isCancelled || isClosed)) {
+                        courseOfferingsList.add(Offering(sectionDateTime, building, room, instructors,
+                                isTba, isCancelled, isClosed))
+                    }
                 }
             }
         }
