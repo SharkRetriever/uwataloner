@@ -17,7 +17,6 @@ import me.rayzz.uwataloner.apiobjectfactories.BuildingCourseFactory
 import me.rayzz.uwataloner.apiobjects.BuildingCourse
 import me.rayzz.uwataloner.base.ErrorRedirector
 import me.rayzz.uwataloner.base.ExceptionStrings
-import me.rayzz.uwataloner.base.UWaterlooAPIRequestManager
 import me.rayzz.uwataloner.studyalonetoolkit.GapSlot
 import org.joda.time.DateTime
 import org.joda.time.Period
@@ -70,7 +69,7 @@ class StudyAloneViewResultsActivity : AppCompatActivity() {
         // note: chosenRoom might be empty
         try {
             val coursesInRoom: List<BuildingCourse> = BuildingCourseFactory.generate(chosenBuilding, chosenRoom)
-            val parsedCoursesInfo: Array<String> = parseCoursesInRoomJSON(coursesInRoom, chosenTimeHour, chosenTimeMinute)
+            val parsedCoursesInfo: Array<String> = findAndListGaps(coursesInRoom, chosenTimeHour, chosenTimeMinute)
             studyAloneCourseResultsList.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, parsedCoursesInfo)
         }
         catch (e: Exception) {
@@ -79,28 +78,31 @@ class StudyAloneViewResultsActivity : AppCompatActivity() {
         }
     }
 
-    private fun parseCoursesInRoomJSON(coursesInRoom: List<BuildingCourse>, chosenTimeHour: Int, chosenTimeMinute: Int): Array<String>
+    private fun findAndListGaps(coursesInRoom: List<BuildingCourse>, chosenTimeHour: Int, chosenTimeMinute: Int): Array<String>
     {
         val gapTimes: MutableList<GapSlot> = mutableListOf()
-        val coursesInRoomArray: Array<BuildingCourse> = coursesInRoom.toTypedArray()
-        val sortedCourses: Array<BuildingCourse> = coursesInRoomArray.sortedWith(compareBy({ it.room }, { it.sectionDateTime.asNextOccurrence() })).toTypedArray()
+        val sortedCourses: Array<BuildingCourse> = coursesInRoom.filter{ it.sectionDateTime.occursToday() }.sortedWith(compareBy({ it.room }, { it.sectionDateTime.asNextOccurrence() })).toTypedArray()
 
         // calculate all gaps
         for (i in 0 until sortedCourses.size - 1) {
             val currentCourse: BuildingCourse = sortedCourses.get(i)
             val nextCourse: BuildingCourse = sortedCourses.get(i + 1)
 
-            if (currentCourse.sectionDateTime.occursToday() && !currentCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute) &&
-                (currentCourse.room != nextCourse.room || nextCourse.sectionDateTime.asNextOccurrence().minusMinutes(11).isAfter(currentCourse.sectionDateTime.asNextOccurrenceEnd()))) {
+            // TODO: list rooms that are available all day, if chosenRoom is empty
+            
+            // gaps that have yet to occur, during the day (lecture in progress)
+            if (!currentCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute) &&
+                currentCourse.room == nextCourse.room &&
+                nextCourse.sectionDateTime.asNextOccurrence().minusMinutes(11).isAfter(currentCourse.sectionDateTime.asNextOccurrenceEnd())) {
                 val gap = GapSlot(currentCourse.sectionDateTime.asNextOccurrenceEnd(),
                         nextCourse.sectionDateTime.asNextOccurrence(),
                         currentCourse.building, currentCourse.room)
                 gapTimes.add(gap)
             }
 
-            if ((i == 0 || currentCourse.room != nextCourse.room) &&
-                !nextCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute) &&
-                nextCourse.sectionDateTime.occursToday()) {
+            // gaps that occur between the requested time and the first class of a given room
+            if ((i == 0 && !currentCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute)) ||
+                (currentCourse.room != nextCourse.room && !nextCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute))) {
                 val currentTime = DateTime.now()
                 val requestedStudyTime = DateTime(currentTime.year, currentTime.monthOfYear, currentTime.dayOfMonth, chosenTimeHour, chosenTimeMinute)
 
@@ -110,7 +112,50 @@ class StudyAloneViewResultsActivity : AppCompatActivity() {
                 val daysToAddAsDuration = Period(0, 0, 0, daysToAdd, 0, 0, 0, 0)
 
                 val dayAdjustedRequestedStudyTime = requestedStudyTime.withPeriodAdded(daysToAddAsDuration, 1)
-                val gap = GapSlot(dayAdjustedRequestedStudyTime, nextCourse.sectionDateTime.asNextOccurrence(), nextCourse.building, nextCourse.room)
+                val gap = if (i == 0)
+                        GapSlot(dayAdjustedRequestedStudyTime, currentCourse.sectionDateTime.asNextOccurrence(), currentCourse.building, currentCourse.room)
+                    else
+                        GapSlot(dayAdjustedRequestedStudyTime, nextCourse.sectionDateTime.asNextOccurrence(), nextCourse.building, nextCourse.room)
+                if (gap.getDuration().minutes >= 20)
+                    gapTimes.add(gap)
+            }
+
+            // gaps that occur between the requested time and the end of the day (all lectures completed in the given room)
+            if ((i + 1 == sortedCourses.size - 1 && nextCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute)) ||
+                (currentCourse.room != nextCourse.room && currentCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute))) {
+                val currentTime = DateTime.now()
+                val requestedStudyTime = DateTime(currentTime.year, currentTime.monthOfYear, currentTime.dayOfMonth, chosenTimeHour, chosenTimeMinute)
+                val requestedStudyEnd = DateTime(currentTime.year, currentTime.monthOfYear, currentTime.dayOfMonth, 23, 59)
+
+                // stolen from SectionDateTime
+                val curActualDay: Int = currentTime.dayOfWeek
+                val daysToAdd: Int = if (curActualDay >= 6) 8 - curActualDay else 0
+                val daysToAddAsDuration = Period(0, 0, 0, daysToAdd, 0, 0, 0, 0)
+
+                val dayAdjustedRequestedStudyTime = requestedStudyTime.withPeriodAdded(daysToAddAsDuration, 1)
+                val dayAdjustedRequestedStudyTimeEnd = requestedStudyEnd.withPeriodAdded(daysToAddAsDuration, 1)
+                val gap = if (i + 1 == sortedCourses.size - 1)
+                        GapSlot(dayAdjustedRequestedStudyTime, dayAdjustedRequestedStudyTimeEnd, nextCourse.building, nextCourse.room)
+                    else
+                        GapSlot(dayAdjustedRequestedStudyTime, dayAdjustedRequestedStudyTimeEnd, currentCourse.building, currentCourse.room)
+                gapTimes.add(gap)
+            }
+
+            // gaps that occur between the last class of the day and the end of the day (assuming last one failed)
+            else if ((i + 1 == sortedCourses.size - 1) || (currentCourse.room != nextCourse.room)) {
+                val currentTime = DateTime.now()
+                val requestedStudyEnd = DateTime(currentTime.year, currentTime.monthOfYear, currentTime.dayOfMonth, 23, 59)
+
+                // stolen from SectionDateTime
+                val curActualDay: Int = currentTime.dayOfWeek
+                val daysToAdd: Int = if (curActualDay >= 6) 8 - curActualDay else 0
+                val daysToAddAsDuration = Period(0, 0, 0, daysToAdd, 0, 0, 0, 0)
+
+                val dayAdjustedRequestedStudyTimeEnd = requestedStudyEnd.withPeriodAdded(daysToAddAsDuration, 1)
+                val gap = if (i + 1 == sortedCourses.size - 1)
+                    GapSlot(nextCourse.sectionDateTime.asNextOccurrenceEnd(), dayAdjustedRequestedStudyTimeEnd, nextCourse.building, nextCourse.room)
+                else
+                    GapSlot(currentCourse.sectionDateTime.asNextOccurrenceEnd(), dayAdjustedRequestedStudyTimeEnd, currentCourse.building, currentCourse.room)
                 gapTimes.add(gap)
             }
         }

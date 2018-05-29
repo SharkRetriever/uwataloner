@@ -52,13 +52,17 @@ class SectionDateTime(val startTime: String, val endTime: String,
         val currentDay: Int = instance.dayOfMonth
 
         if (weekdays.isEmpty()) {
+            if (endDate.split(":").size != 2 || endDate.split("/").size != 2) {
+                throw InvalidParameterException("Invalid datetime given!")
+            }
             val endMonth: Int? = endDate.split("/")[0].toIntOrNull()
             val endDay: Int? = endDate.split("/")[1].toIntOrNull()
             val endHour: Int? = endDate.split(":")[0].toIntOrNull()
             val endMinute: Int? = endDate.split(":")[1].toIntOrNull()
             if (endMonth == null || endDay == null || endHour == null || endMinute == null)
-                throw InvalidParameterException("Invalid date given!")
-            else if (currentMonth > endMonth) {
+                throw InvalidParameterException("Invalid datetime given!")
+
+            if (currentMonth > endMonth) {
                 return true
             }
             else if (currentMonth == endMonth) {
@@ -74,9 +78,12 @@ class SectionDateTime(val startTime: String, val endTime: String,
                     }
                 }
             }
+            return false
         }
-
-        return false
+        else {
+            val requestedTime = DateTime(instance.year, currentMonth, currentDay, chosenTimeHour, chosenTimeMinute)
+            return asNextOccurrenceEnd().isBefore(requestedTime)
+        }
     }
 
     fun occursToday(): Boolean {

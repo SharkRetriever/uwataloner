@@ -23,7 +23,7 @@ class GapSlot(val startDateTime: DateTime, val endDateTime: DateTime,
         val durationHour: Int = getDuration().hours
         val durationMinutes: Int = getDuration().minutes
         return when {
-            (startDateHour > endDateHour || (startDateHour == endDateHour && startDateMinute > endDateMinute)) ->
+            (endDateHour == 23 && endDateMinute == 59) ->
                 "%s %s\nAfter %d:%02d".format(
                         building, room, startDateHour, startDateMinute)
             else ->
