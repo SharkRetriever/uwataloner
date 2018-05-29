@@ -69,7 +69,8 @@ class AuditCourseChooseCourseActivity : AppCompatActivity() {
             chooseCourseText.setAdapter<ArrayAdapter<String>>(adapter)
         }
         catch (e: Exception) {
-            ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_STATUS_STRING)
+            e.printStackTrace(System.err)
+            ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_STATUS_STRING, e)
         }
     }
 

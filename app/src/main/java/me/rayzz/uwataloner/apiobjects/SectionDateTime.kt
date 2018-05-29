@@ -41,12 +41,10 @@ class SectionDateTime(val startTime: String, val endTime: String,
      * Return whether a course has passed the point of consideration or not
      * It has passed if its end time comes before the current time
      */
-    fun hasPassed(): Boolean {
+    fun hasPassed(chosenTimeHour: Int, chosenTimeMinute: Int): Boolean {
         val instance: DateTime = DateTime.now()
         val currentMonth: Int = instance.monthOfYear
         val currentDay: Int = instance.dayOfMonth
-        val currentHour: Int = instance.hourOfDay
-        val currentMinute: Int = instance.minuteOfHour
 
         if (weekdays.isEmpty()) {
             val endMonth: Int? = endDate.split("/")[0].toIntOrNull()
@@ -63,11 +61,11 @@ class SectionDateTime(val startTime: String, val endTime: String,
                     return true
                 }
                 else if (currentDay == endDay) {
-                    return if (currentHour > endHour) {
+                    return if (chosenTimeHour > endHour) {
                         true
                     }
                     else {
-                        (currentHour == endHour && currentMinute > endMinute)
+                        (chosenTimeHour == endHour && chosenTimeMinute > endMinute)
                     }
                 }
             }
@@ -82,11 +80,14 @@ class SectionDateTime(val startTime: String, val endTime: String,
         val currentDay: Int = instance.dayOfMonth
 
         if (weekdays.isEmpty()) {
+            if (startDate.split("/").size != 2 || endDate.split("/").size != 2) {
+                throw InvalidParameterException("Invalid date given!")
+            }
             val startMonth: Int? = startDate.split("/")[0].toIntOrNull()
             val startDay: Int? = startDate.split("/")[1].toIntOrNull()
             val endMonth: Int? = endDate.split("/")[0].toIntOrNull()
             val endDay: Int? = endDate.split("/")[1].toIntOrNull()
-            if (startMonth == null || startDay == null)
+            if (startMonth == null || startDay == null || endMonth == null || endDay == null)
                 throw InvalidParameterException("Invalid date given!")
             else
                 return (currentMonth == startMonth && currentDay == startDay) ||
@@ -94,25 +95,39 @@ class SectionDateTime(val startTime: String, val endTime: String,
         }
         else {
             val weekdaysList: List<Int> = getWeekdays()
-            val curday = curSchoolDay()
+            val curday: Int = curSchoolDay()
             return weekdaysList.any { it == curday }
         }
     }
 
-    fun asNextOccurrence(): DateTime {
+    private fun toDateTime(date: String, time: String): DateTime {
         val instance: DateTime = DateTime.now()
         val currentYear: Int = instance.year
-        val startHour: Int? = startTime.split(":")[0].toIntOrNull()
-        val startMinute: Int? = startTime.split(":")[1].toIntOrNull()
-        val startMonth: Int? = startDate.split("/")[0].toIntOrNull()
-        val startDay: Int? = startDate.split("/")[1].toIntOrNull()
-        if (startMonth == null || startDay == null || startHour == null || startMinute == null)
-            throw InvalidParameterException("Invalid date given!")
+
+        if (time.split(":").size != 2) {
+            throw InvalidParameterException("Invalid time given!")
+        }
+        val startHour: Int? = time.split(":")[0].toIntOrNull()
+        val startMinute: Int? = time.split(":")[1].toIntOrNull()
+        if (startHour == null || startMinute == null) {
+            throw InvalidParameterException("Invalid time given!")
+        }
 
         if (weekdays.isEmpty()) {
+            if (date.split("/").size != 2) {
+                throw InvalidParameterException("Invalid time given!")
+            }
+            val startMonth: Int? = date.split("/")[0].toIntOrNull()
+            val startDay: Int? = date.split("/")[1].toIntOrNull()
+            if (startMonth == null || startDay == null) {
+                throw InvalidParameterException("Invalid date given!")
+            }
             return DateTime(currentYear, startMonth, startDay, startHour, startMinute)
         }
         else {
+            val currentMonth: Int = instance.monthOfYear
+            val currentDay: Int = instance.dayOfMonth
+
             val weekdaysList: List<Int> = getWeekdays()
             // the current school day, where weekend corresponds to monday
             val curSchoolDay: Int = curSchoolDay()
@@ -123,9 +138,18 @@ class SectionDateTime(val startTime: String, val endTime: String,
             val daysToAdd: Int = if (firstMatchingWeekday >= curActualDay) firstMatchingWeekday - curActualDay
                                  else 7 - (curActualDay - firstMatchingWeekday)
             val daysToAddAsDuration = Period(0, 0, 0, daysToAdd, 0, 0, 0, 0)
+
             // 1 indicates add once
-            return instance.withPeriodAdded(daysToAddAsDuration, 1)
+            return DateTime(currentYear, currentMonth, currentDay, startHour, startMinute).withPeriodAdded(daysToAddAsDuration, 1)
         }
+    }
+
+    fun asNextOccurrence(): DateTime {
+        return toDateTime(startDate, startTime)
+    }
+
+    fun asNextOccurrenceEnd(): DateTime {
+        return toDateTime(endDate, endTime)
     }
 
     override fun toString(): String {

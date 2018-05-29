@@ -11,9 +11,9 @@ import android.content.Intent
 import me.rayzz.uwataloner.ErrorActivity
 
 object ErrorRedirector {
-    fun redirectError(context: Context, errorString: String) {
+    fun redirectError(context: Context, errorString: String, e: Exception) {
         val intent = Intent(context, ErrorActivity::class.java)
-        intent.putExtra("exception", errorString)
+        intent.putExtra("exception", errorString + "\n" + e.toString())
         context.startActivity(intent)
     }
 }

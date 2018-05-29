@@ -12,22 +12,18 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.View
 import android.widget.ArrayAdapter
-import com.eclipsesource.json.JsonArray
-import com.eclipsesource.json.JsonValue
 import kotlinx.android.synthetic.main.activity_study_alone_view_results.*
+import me.rayzz.uwataloner.apiobjectfactories.BuildingCourseFactory
+import me.rayzz.uwataloner.apiobjects.BuildingCourse
 import me.rayzz.uwataloner.base.ErrorRedirector
 import me.rayzz.uwataloner.base.ExceptionStrings
-import me.rayzz.uwataloner.base.JsonFieldExtractor
 import me.rayzz.uwataloner.base.UWaterlooAPIRequestManager
-import me.rayzz.uwataloner.studyalonetoolkit.CourseSlot
 import me.rayzz.uwataloner.studyalonetoolkit.GapSlot
 import org.joda.time.DateTime
-import java.util.*
-import kotlin.collections.ArrayList
+import org.joda.time.Period
 
 class StudyAloneViewResultsActivity : AppCompatActivity() {
 
-    private val webRequestManager = UWaterlooAPIRequestManager()
     private val chosenBuildingString: String = "chosenBuilding"
     private val chosenRoomString: String = "chosenRoom"
     private val chosenTimeString: String = "chosenTime"
@@ -43,12 +39,12 @@ class StudyAloneViewResultsActivity : AppCompatActivity() {
         val chosenTimeMinute: Int
 
         if (savedInstanceState == null) {
-            chosenBuilding = intent.getStringExtra(chosenBuildingString).split(" ")[0]
+            chosenBuilding = intent.getStringExtra(chosenBuildingString)
             chosenRoom = intent.getStringExtra(chosenRoomString)
             chosenTime = intent.getStringExtra(chosenTimeString)
         }
         else {
-            chosenBuilding = savedInstanceState.getString(chosenBuildingString).split(" ")[0]
+            chosenBuilding = savedInstanceState.getString(chosenBuildingString)
             chosenRoom = savedInstanceState.getString(chosenRoomString)
             chosenTime = savedInstanceState.getString(chosenTimeString)
         }
@@ -73,128 +69,55 @@ class StudyAloneViewResultsActivity : AppCompatActivity() {
         // we need a way to get rooms per building
         // note: chosenRoom might be empty
         try {
-            val coursesInRoomJson: JsonValue = webRequestManager.getWebPageJson("/buildings/" + chosenBuilding + "/" +
-                    chosenRoom + "/courses")
-
-            val parsedCoursesInfo: Array<String> = parseCoursesInRoomJSON(coursesInRoomJson, chosenTimeHour, chosenTimeMinute)
+            val coursesInRoom: List<BuildingCourse> = BuildingCourseFactory.generate(chosenBuilding, chosenRoom)
+            val parsedCoursesInfo: Array<String> = parseCoursesInRoomJSON(coursesInRoom, chosenTimeHour, chosenTimeMinute)
             studyAloneCourseResultsList.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, parsedCoursesInfo)
         }
         catch (e: Exception) {
-            ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_STATUS_STRING)
+            e.printStackTrace(System.err)
+            ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_STATUS_STRING, e)
         }
     }
 
-    private fun parseCoursesInRoomJSON(coursesInRoomJson: JsonValue, chosenTimeHour: Int, chosenTimeMinute: Int): Array<String>
+    private fun parseCoursesInRoomJSON(coursesInRoom: List<BuildingCourse>, chosenTimeHour: Int, chosenTimeMinute: Int): Array<String>
     {
-        val coursesInRoomJsonCoursesData: JsonValue? = coursesInRoomJson.asObject().get("data")
-        val coursesInRoomJSONCoursesArray: JsonArray? = coursesInRoomJsonCoursesData?.asArray()
+        val gapTimes: MutableList<GapSlot> = mutableListOf()
+        val coursesInRoomArray: Array<BuildingCourse> = coursesInRoom.toTypedArray()
+        val sortedCourses: Array<BuildingCourse> = coursesInRoomArray.sortedWith(compareBy({ it.room }, { it.sectionDateTime.asNextOccurrence() })).toTypedArray()
 
-        val courseTimes = ArrayList<CourseSlot>()
-        val gapTimes = ArrayList<GapSlot>()
-        val stringizedGapTimes = ArrayList<String>()
+        // calculate all gaps
+        for (i in 0 until sortedCourses.size - 1) {
+            val currentCourse: BuildingCourse = sortedCourses.get(i)
+            val nextCourse: BuildingCourse = sortedCourses.get(i + 1)
 
-        if (coursesInRoomJSONCoursesArray == null) {
-            ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_FORMAT_STRING)
-        }
-        else {
-            val currentDate: DateTime = DateTime.now()
-            for (i in 0 until coursesInRoomJSONCoursesArray.size()) {
-                val currentCourse: JsonValue = coursesInRoomJSONCoursesArray.get(i)
-
-                val weekdaysString: String = JsonFieldExtractor.extractStringValue(currentCourse, "weekdays")
-                val startTimeString: String = JsonFieldExtractor.extractStringValue(currentCourse, "start_time")
-                val endTimeString: String = JsonFieldExtractor.extractStringValue(currentCourse, "end_time")
-                val startDateString: String = JsonFieldExtractor.extractStringValue(currentCourse, "start_date")
-                val endDateString: String = JsonFieldExtractor.extractStringValue(currentCourse, "end_date")
-                val subject: String = JsonFieldExtractor.extractStringValue(currentCourse, "subject")
-                val catalogNumber: String = JsonFieldExtractor.extractStringValue(currentCourse, "catalog_number")
-                val title: String = JsonFieldExtractor.extractStringValue(currentCourse, "title")
-
-                if ((weekdaysString.isBlank() && (startDateString.isBlank() || endDateString.isBlank())) ||
-                    (startTimeString.isBlank() || endTimeString.isBlank() || subject.isBlank() || catalogNumber.isBlank() || title.isBlank())) {
-                    ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_FORMAT_STRING)
-                }
-                else {
-                    val weekdays: List<Int> = findWeekDays(weekdaysString) // M-F
-                    val startTime: Array<Int> = startTimeString.split(":").map { it.toInt() }.toTypedArray()  // hh:mm
-                    val endTime: Array<Int> = endTimeString.split(":").map { it.toInt() }.toTypedArray()      // hh:mm
-                    // might be null if weekdays is defined, so add check
-                    val startDate: Array<Int> = if (weekdays.isEmpty())
-                            startDateString.split("/").map { it.toInt() }.toTypedArray()
-                        else arrayOf()  // mm/dd
-                    val endDate: Array<Int> = if (weekdays.isEmpty())
-                            endDateString.split("/").map { it.toInt() }.toTypedArray()
-                        else arrayOf() // mm/dd
-
-                    if (startDate.isEmpty()) {
-                        val currentDayOfWeek: Int = currentDate.dayOfWeek
-                        val adjustedDayOfWeek: Int = if (currentDayOfWeek == 6 || currentDayOfWeek == 7) 1 else currentDayOfWeek
-                        val matchingDayOfWeek: Int? = weekdays.firstOrNull { it == adjustedDayOfWeek }
-                        if (matchingDayOfWeek != null) {
-                            val startDateTime = DateTime(currentDate.year, currentDate.monthOfYear, currentDate.dayOfMonth, startTime[0], startTime[1])
-                            val endDateTime = DateTime(currentDate.year, currentDate.monthOfYear, currentDate.dayOfMonth, endTime[0], endTime[1])
-                            val currentCourseSlot = CourseSlot(startDateTime, endDateTime, "", "", subject, catalogNumber, title)
-                            courseTimes.add(currentCourseSlot)
-                        }
-                    } else {
-                        // we already have startDate and endDate provided, so make a CourseSlot out of that
-                        val startDateTime = DateTime(currentDate.year, startDate[0], startDate[1], startTime[0], startTime[1])
-                        val endDateTime = DateTime(currentDate.year, endDate[0], endDate[1], endTime[0], endTime[1])
-                        val currentDay: Int = DateTime.now().dayOfMonth
-
-                        if ((startDateTime.dayOfMonth == currentDay && startDateTime.isAfterNow) ||
-                                (endDateTime.dayOfMonth == currentDay && endDateTime.isAfterNow)) {
-                            val currentCourseSlot = CourseSlot(startDateTime, endDateTime, "", "", subject, catalogNumber, title)
-                            courseTimes.add(currentCourseSlot)
-                        }
-                    }
-                }
+            if (currentCourse.sectionDateTime.occursToday() && !currentCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute) &&
+                (currentCourse.room != nextCourse.room || nextCourse.sectionDateTime.asNextOccurrence().minusMinutes(11).isAfter(currentCourse.sectionDateTime.asNextOccurrenceEnd()))) {
+                val gap = GapSlot(currentCourse.sectionDateTime.asNextOccurrenceEnd(),
+                        nextCourse.sectionDateTime.asNextOccurrence(),
+                        currentCourse.building, currentCourse.room)
+                gapTimes.add(gap)
             }
 
-            courseTimes.sortBy { it.startDateTime.millis }
+            if ((i == 0 || currentCourse.room != nextCourse.room) &&
+                !nextCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute) &&
+                nextCourse.sectionDateTime.occursToday()) {
+                val currentTime = DateTime.now()
+                val requestedStudyTime = DateTime(currentTime.year, currentTime.monthOfYear, currentTime.dayOfMonth, chosenTimeHour, chosenTimeMinute)
 
-            // calculate all gaps
-            for (i in 0 until courseTimes.size - 1) {
-                val currentCourse: CourseSlot = courseTimes.get(i)
-                val nextCourse: CourseSlot = courseTimes.get(i + 1)
+                // stolen from SectionDateTime
+                val curActualDay: Int = currentTime.dayOfWeek
+                val daysToAdd: Int = if (curActualDay >= 6) 8 - curActualDay else 0
+                val daysToAddAsDuration = Period(0, 0, 0, daysToAdd, 0, 0, 0, 0)
 
-                if (currentCourse.doesNotShareTimesWith(nextCourse) &&
-                    nextCourse.startDateTime.minusMinutes(11).isAfter(currentCourse.endDateTime)) {
-                    val gap = GapSlot(currentCourse.endDateTime, nextCourse.startDateTime, "", "")
-                    gapTimes.add(gap)
-                }
-            }
-
-            // reformat as string
-            gapTimes.forEach { it ->
-                val startDateHour: Int = it.startDateTime.hourOfDay
-                val startDateMinute: Int = it.startDateTime.minuteOfHour
-                val endDateHour: Int = it.endDateTime.hourOfDay
-                val endDateMinute: Int = it.endDateTime.minuteOfHour
-                val durationHour: Int = it.getDuration().hours
-                val durationMinutes: Int = it.getDuration().minutes
-                val formattedString: String = "%2d:%02d - %2d:%02d (for %2dh%02d)".format(
-                        startDateHour, startDateMinute, endDateHour, endDateMinute, durationHour, durationMinutes)
-                stringizedGapTimes.add(formattedString)
+                val dayAdjustedRequestedStudyTime = requestedStudyTime.withPeriodAdded(daysToAddAsDuration, 1)
+                val gap = GapSlot(dayAdjustedRequestedStudyTime, nextCourse.sectionDateTime.asNextOccurrence(), nextCourse.building, nextCourse.room)
+                gapTimes.add(gap)
             }
         }
 
-        return stringizedGapTimes.toTypedArray()
-    }
-
-    private fun findWeekDays(smushedWeekdays: String): List<Int> {
-        val weekdays = LinkedList<Int>()
-        if (smushedWeekdays.contains("M"))
-            weekdays.add(1)
-        if (smushedWeekdays.contains("T"))
-            weekdays.add(2)
-        if (smushedWeekdays.contains("W"))
-            weekdays.add(3)
-        if (smushedWeekdays.contains("Th"))
-            weekdays.add(4)
-        if (smushedWeekdays.contains("F"))
-            weekdays.add(5)
-        return weekdays
+        // reformat as string
+        gapTimes.sortBy { it.startDateTime }
+        return gapTimes.map { it.toString() }.toTypedArray()
     }
 
     fun studyAloneAgainButtonOnClick(view: View) {

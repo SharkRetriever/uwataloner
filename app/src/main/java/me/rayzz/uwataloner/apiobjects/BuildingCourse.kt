@@ -6,8 +6,6 @@
  */
 package me.rayzz.uwataloner.apiobjects
 
-import me.rayzz.uwataloner.base.ExceptionStrings
-
 /**
  * Holds a course that takes place inside of a room
  * GET /buildings/{building}/{room}/courses.{format}
@@ -16,8 +14,4 @@ class BuildingCourse(val sectionDateTime: SectionDateTime,
                      val subject: String, val catalogNumber: String,
                      val title: String, val section: String,
                      val enrollmentTotal: Int,
-                     val building: String, val room: String, val instructors: List<String>) {
-    override fun toString(): String {
-        throw UnsupportedOperationException(ExceptionStrings.INVALID_PARAMETERS_STRING)
-    }
-}
+                     val building: String, val room: String, val instructors: List<String>)

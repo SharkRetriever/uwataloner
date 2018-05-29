@@ -13,6 +13,8 @@ import me.rayzz.uwataloner.apiobjects.SectionDateTime
 import me.rayzz.uwataloner.base.ExceptionStrings
 import me.rayzz.uwataloner.base.JsonFieldExtractor
 import me.rayzz.uwataloner.base.UWaterlooAPIRequestManager
+import me.rayzz.uwataloner.generatedapiobjects.BuildingRoomsListMap
+import java.io.InvalidObjectException
 import java.security.InvalidParameterException
 
 /**
@@ -25,10 +27,22 @@ object BuildingCourseFactory {
 
     fun generate(building: String, room: String): List<BuildingCourse> {
         try {
-            val coursesInRoomJson: JsonValue = webRequestManager.getWebPageJson("/buildings/" + building + "/" +
-                    room + "/courses")
+            val buildingCode: String = building.split(" ")[0]
+            if (room.isNotEmpty()) {
+                val coursesInRoomJson: JsonValue = webRequestManager.getWebPageJson("/buildings/" + buildingCode + "/" +
+                        room + "/courses")
 
-            return parseBuildingCourseJson(coursesInRoomJson)
+                return parseBuildingCourseJson(coursesInRoomJson)
+            }
+            else {
+                val coursesInBuilding: List<BuildingCourse>? = BuildingRoomsListMap.getBuildingRoomsListMap()[building]?.flatMap {
+                    val coursesInRoomJson: JsonValue = webRequestManager.getWebPageJson("/buildings/" + buildingCode + "/" +
+                        it + "/courses")
+                    parseBuildingCourseJson(coursesInRoomJson)
+                }
+
+                return coursesInBuilding ?: throw InvalidObjectException(ExceptionStrings.UNKNOWN_EXCEPTION_STRING)
+            }
         }
         catch (e: Exception) {
             throw InvalidParameterException(ExceptionStrings.INVALID_JSON_STATUS_STRING)

@@ -54,7 +54,8 @@ class AuditCourseChooseSubjectActivity : AppCompatActivity() {
             chooseSubjectText.setAdapter<ArrayAdapter<String>>(adapter)
         }
         catch (e: InvalidObjectException) {
-            ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_STATUS_STRING)
+            e.printStackTrace(System.err)
+            ErrorRedirector.redirectError(this, ExceptionStrings.INVALID_JSON_STATUS_STRING, e)
         }
 
         /*

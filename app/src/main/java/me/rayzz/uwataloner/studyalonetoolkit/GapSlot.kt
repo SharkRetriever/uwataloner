@@ -14,4 +14,21 @@ class GapSlot(val startDateTime: DateTime, val endDateTime: DateTime,
     fun getDuration(): Period {
         return Period(startDateTime.millis, endDateTime.millis)
     }
+
+    override fun toString(): String {
+        val endDateHour: Int = endDateTime.hourOfDay
+        val endDateMinute: Int = endDateTime.minuteOfHour
+        val startDateHour: Int = startDateTime.hourOfDay
+        val startDateMinute: Int = startDateTime.minuteOfHour
+        val durationHour: Int = getDuration().hours
+        val durationMinutes: Int = getDuration().minutes
+        return when {
+            (startDateHour > endDateHour || (startDateHour == endDateHour && startDateMinute > endDateMinute)) ->
+                "%s %s\nAfter %d:%02d".format(
+                        building, room, startDateHour, startDateMinute)
+            else ->
+                "%s %s\n%d:%02d - %d:%02d (for %d hrs %2d min)".format(
+                        building, room, startDateHour, startDateMinute, endDateHour, endDateMinute, durationHour, durationMinutes)
+        }
+    }
 }

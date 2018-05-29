@@ -114,19 +114,19 @@ class StudyAloneChooseBuildingActivity : AppCompatActivity() {
 
     fun chooseBuildingNextButtonOnClick(view: View) {
         val chosenBuilding: String = chooseBuildingText.text.toString().trim()
-        val chosenBuildingCode: String = chosenBuilding.split(" ")[0]
         val chosenRoom: String = chooseRoomText.text.toString()
         val chosenTime: String = chooseTimeText.text.toString()
 
         val validRoomsList: HashMap<String, List<String>> = BuildingRoomsListMap.getBuildingRoomsListMap()
         // use != true since the boolean is nullable
-        if (!(validRoomsList.containsKey(chosenBuilding) && (validRoomsList[chosenBuilding]?.contains(chosenRoom)) == true)) {
+        if (!(validRoomsList.containsKey(chosenBuilding) &&
+            (chosenRoom.isEmpty() || (validRoomsList[chosenBuilding]?.contains(chosenRoom)) == true))) {
             showInvalidInputDialog()
             return
         }
 
         val intent = Intent(this, StudyAloneViewResultsActivity::class.java)
-        intent.putExtra("chosenBuilding", chosenBuildingCode)
+        intent.putExtra("chosenBuilding", chosenBuilding)
         intent.putExtra("chosenRoom", chosenRoom)
         intent.putExtra("chosenTime", chosenTime)
 
