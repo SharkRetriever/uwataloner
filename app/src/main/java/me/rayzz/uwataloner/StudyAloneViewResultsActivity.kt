@@ -89,7 +89,7 @@ class StudyAloneViewResultsActivity : AppCompatActivity() {
             val nextCourse: BuildingCourse = sortedCourses.get(i + 1)
 
             // TODO: list rooms that are available all day, if chosenRoom is empty
-            
+
             // gaps that have yet to occur, during the day (lecture in progress)
             if (!currentCourse.sectionDateTime.hasPassed(chosenTimeHour, chosenTimeMinute) &&
                 currentCourse.room == nextCourse.room &&

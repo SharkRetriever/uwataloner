@@ -8,6 +8,7 @@ package me.rayzz.uwataloner
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import kotlinx.android.synthetic.main.activity_error.*
 
 class ErrorActivity : AppCompatActivity() {
@@ -20,5 +21,11 @@ class ErrorActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
 
+    }
+
+    fun exitButtonOnClick(view: View) {
+        moveTaskToBack(true);
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(1);
     }
 }
