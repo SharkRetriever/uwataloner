@@ -4,14 +4,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package me.rayzz.uwataloner.apiobjects
+package me.rayzz.uwataloner.apimodels
 
-import me.rayzz.uwataloner.base.CharacterRepository
+import me.rayzz.uwataloner.utilities.CharacterRepository
+import me.rayzz.uwataloner.viewmodels.SectionDateTime
 
 /**
  * Helper to CourseSection
  * Holds a single instance of an offering time of a given section
  */
+@Deprecated("Unused -- to be refactored into newer service in later version")
 class Offering(val sectionDateTime: SectionDateTime,
                val building: String, val room: String, val instructors: List<String>,
                val isTba: Boolean, val isCancelled: Boolean, val isClosed: Boolean) {

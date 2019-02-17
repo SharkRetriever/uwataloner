@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="me.rayzz.uwataloner">
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -20,12 +19,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".StudyAloneViewResultsActivity" />
-        <activity android:name=".FindCourseCodeActivity" />
-        <activity android:name=".AuditCourseChooseSubjectActivity" />
-        <activity android:name=".AuditCourseChooseCourseActivity" />
-        <activity android:name=".AuditCourseViewResultsActivity" />
         <activity android:name=".StudyAloneChooseBuildingActivity" />
-        <activity android:name=".ErrorActivity"></activity>
+        <activity android:name=".StudyAloneProcessingActivity" android:noHistory="true" />
     </application>
 
 </manifest>

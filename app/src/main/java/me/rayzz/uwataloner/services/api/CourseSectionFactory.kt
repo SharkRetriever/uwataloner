@@ -4,35 +4,35 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package me.rayzz.uwataloner.apiobjectfactories
+package me.rayzz.uwataloner.services.api
 
 import com.eclipsesource.json.JsonArray
 import com.eclipsesource.json.JsonValue
-import me.rayzz.uwataloner.apiobjects.CourseSection
-import me.rayzz.uwataloner.apiobjects.Offering
-import me.rayzz.uwataloner.apiobjects.SectionDateTime
-import me.rayzz.uwataloner.base.ExceptionStrings
-import me.rayzz.uwataloner.base.JsonFieldExtractor
-import me.rayzz.uwataloner.base.UWaterlooAPIRequestManager
-import java.security.InvalidParameterException
+import me.rayzz.uwataloner.apimodels.CourseSection
+import me.rayzz.uwataloner.apimodels.Offering
+import me.rayzz.uwataloner.viewmodels.SectionDateTime
+import me.rayzz.uwataloner.utilities.ExceptionStrings
+import me.rayzz.uwataloner.utilities.JsonFieldExtractor
+import me.rayzz.uwataloner.utilities.UWaterlooAPIRequestManager
 
 /**
  * Given a subject and course, generates the course schedule for every section of that
  * subject and course
  * GET /courses/{subject}/{catalog_number}/schedule.{format}
  */
+@Deprecated("Unused -- to be refactored into newer service in later version")
 object CourseSectionFactory {
     private val webRequestManager = UWaterlooAPIRequestManager()
 
     fun generate(subject: String, catalogNumber: String): List<CourseSection> {
         try {
-            val coursesScheduleJson: JsonValue = webRequestManager.getWebPageJson("/courses/" + subject + "/" +
+            val coursesScheduleJson: JsonValue = webRequestManager.getWebPageJson("courses/" + subject + "/" +
                     catalogNumber + "/schedule")
 
             return parseCourseJson(coursesScheduleJson)
         }
         catch (e: Exception) {
-            throw InvalidParameterException(ExceptionStrings.INVALID_JSON_STATUS_STRING)
+            throw IllegalArgumentException(ExceptionStrings.INVALID_JSON_STATUS_STRING)
         }
     }
 
@@ -42,7 +42,7 @@ object CourseSectionFactory {
         val courseSectionsList: MutableList<CourseSection> = mutableListOf()
 
         if (courseJsonArray == null) {
-            throw InvalidParameterException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
+            throw IllegalArgumentException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
         }
         else {
             /*
@@ -60,7 +60,7 @@ object CourseSectionFactory {
                 val section: String = JsonFieldExtractor.extractStringValue(currentCourseOffering, "section")
 
                 if (subject.isEmpty() || catalogNumber.isEmpty() || title.isEmpty() || section.isEmpty()) {
-                    throw InvalidParameterException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
+                    throw IllegalArgumentException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
                 }
 
                 if (!(section.startsWith("LEC") || section.startsWith("TUT") || section.startsWith("SEM"))) {
@@ -90,14 +90,14 @@ object CourseSectionFactory {
                val isTba: Boolean, val isCancelled: Boolean, val isClosed: Boolean)
          */
         if (currentCourseSectionTimesArray == null) {
-            throw InvalidParameterException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
+            throw IllegalArgumentException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
         }
         else {
             for (i in 0 until currentCourseSectionTimesArray.size()) {
                 val currentCourseSectionTime: JsonValue = currentCourseSectionTimesArray.get(i)
 
-                val date: JsonValue? = currentCourseSectionTime.asObject().get("date")
-                val location: JsonValue? = currentCourseSectionTime.asObject().get("location")
+                val date: JsonValue = currentCourseSectionTime.asObject().get("date") ?: continue
+                val location: JsonValue = currentCourseSectionTime.asObject().get("location") ?: continue
 
                 val building: String = JsonFieldExtractor.extractStringValue(location, "building")
                 val room: String = JsonFieldExtractor.extractStringValue(location, "room")
@@ -106,8 +106,8 @@ object CourseSectionFactory {
                 val isClosed: Boolean = JsonFieldExtractor.extractBooleanValue(date, "is_closed")
                 val instructors: MutableList<String> = mutableListOf()
 
-                if (!(isCancelled || isClosed || isTba) && (date == null || location == null)) {
-                    throw InvalidParameterException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
+                if (!(isCancelled || isClosed || isTba)) {
+                    throw IllegalArgumentException(ExceptionStrings.INVALID_JSON_FORMAT_STRING)
                 }
                 else {
                     val weekdays: String = JsonFieldExtractor.extractStringValue(date, "weekdays")

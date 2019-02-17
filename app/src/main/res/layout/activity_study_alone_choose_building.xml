@@ -37,6 +37,7 @@
             android:padding="10dp"
             android:ems="5"
             android:inputType="text"
+            android:imeOptions="actionNext"
             android:hint="Building code or query"
             android:layout_weight="1" />
 
@@ -54,6 +55,7 @@
             android:padding="10dp"
             android:ems="5"
             android:inputType="text"
+            android:imeOptions="actionDone"
             android:hint="Room number"
             android:layout_weight="1" />
 

@@ -4,14 +4,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package me.rayzz.uwataloner.apiobjects
+package me.rayzz.uwataloner.apimodels
 
-import me.rayzz.uwataloner.base.CharacterRepository
+import me.rayzz.uwataloner.utilities.CharacterRepository
 
 /**
  * Holds the course schedule per section of a given subject and catalog number
  * GET /courses/{subject}/{catalog_number}/schedule.{format}
  */
+@Deprecated("Unused -- to be refactored into newer service in later version")
 class CourseSection(val subject: String, val catalogNumber: String,
                     val title: String, val section: String,
                     val enrollmentCapacity: Int, val enrollmentTotal: Int,

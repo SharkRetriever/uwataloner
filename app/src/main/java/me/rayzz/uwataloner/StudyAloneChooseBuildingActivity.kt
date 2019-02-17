@@ -20,7 +20,7 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.TimePicker
 import kotlinx.android.synthetic.main.activity_study_alone_choose_building.*
-import me.rayzz.uwataloner.generatedapiobjects.BuildingRoomsListMap
+import me.rayzz.uwataloner.scrapedapiobjects.BuildingRoomsListMap
 import org.joda.time.DateTime
 import java.util.*
 
@@ -125,7 +125,7 @@ class StudyAloneChooseBuildingActivity : AppCompatActivity() {
             return
         }
 
-        val intent = Intent(this, StudyAloneViewResultsActivity::class.java)
+        val intent = Intent(this, StudyAloneProcessingActivity::class.java)
         intent.putExtra("chosenBuilding", chosenBuilding)
         intent.putExtra("chosenRoom", chosenRoom)
         intent.putExtra("chosenTime", chosenTime)

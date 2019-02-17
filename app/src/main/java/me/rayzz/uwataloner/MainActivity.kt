@@ -22,9 +22,4 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, StudyAloneChooseBuildingActivity::class.java)
         startActivity(intent)
     }
-
-    fun auditCourseButtonOnClick(view: View) {
-        val intent = Intent(this, AuditCourseChooseSubjectActivity::class.java)
-        startActivity(intent)
-    }
 }

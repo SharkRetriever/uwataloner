@@ -4,17 +4,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package me.rayzz.uwataloner.apiobjects
+package me.rayzz.uwataloner.viewmodels
 
-import me.rayzz.uwataloner.base.CharacterRepository
+import me.rayzz.uwataloner.utilities.CharacterRepository
 import org.joda.time.DateTime
 import org.joda.time.Period
-import java.security.InvalidParameterException
 import java.util.*
 
 /**
- * Helper for Offering and BuildingCourse
+ * Helper for Offering and BuildingRoomCourse
  */
+@Deprecated("Unused -- to be used in later version")
 class SectionDateTime(val startTime: String, val endTime: String,
                       val weekdays: String, val startDate: String, val endDate: String) {
     fun isValid(): Boolean {
@@ -53,14 +53,14 @@ class SectionDateTime(val startTime: String, val endTime: String,
 
         if (weekdays.isEmpty()) {
             if (endDate.split(":").size != 2 || endDate.split("/").size != 2) {
-                throw InvalidParameterException("Invalid datetime given!")
+                throw IllegalArgumentException("Invalid datetime given!")
             }
             val endMonth: Int? = endDate.split("/")[0].toIntOrNull()
             val endDay: Int? = endDate.split("/")[1].toIntOrNull()
             val endHour: Int? = endDate.split(":")[0].toIntOrNull()
             val endMinute: Int? = endDate.split(":")[1].toIntOrNull()
             if (endMonth == null || endDay == null || endHour == null || endMinute == null)
-                throw InvalidParameterException("Invalid datetime given!")
+                throw IllegalArgumentException("Invalid datetime given!")
 
             if (currentMonth > endMonth) {
                 return true
@@ -93,14 +93,14 @@ class SectionDateTime(val startTime: String, val endTime: String,
 
         if (weekdays.isEmpty()) {
             if (startDate.split("/").size != 2 || endDate.split("/").size != 2) {
-                throw InvalidParameterException("Invalid date given!")
+                throw IllegalArgumentException("Invalid date given!")
             }
             val startMonth: Int? = startDate.split("/")[0].toIntOrNull()
             val startDay: Int? = startDate.split("/")[1].toIntOrNull()
             val endMonth: Int? = endDate.split("/")[0].toIntOrNull()
             val endDay: Int? = endDate.split("/")[1].toIntOrNull()
             if (startMonth == null || startDay == null || endMonth == null || endDay == null)
-                throw InvalidParameterException("Invalid date given!")
+                throw IllegalArgumentException("Invalid date given!")
             else
                 return (currentMonth == startMonth && currentDay == startDay) ||
                        (currentMonth == endMonth && currentDay == endDay)
@@ -117,22 +117,22 @@ class SectionDateTime(val startTime: String, val endTime: String,
         val currentYear: Int = instance.year
 
         if (time.split(":").size != 2) {
-            throw InvalidParameterException("Invalid time given!")
+            throw IllegalArgumentException("Invalid time given!")
         }
         val startHour: Int? = time.split(":")[0].toIntOrNull()
         val startMinute: Int? = time.split(":")[1].toIntOrNull()
         if (startHour == null || startMinute == null) {
-            throw InvalidParameterException("Invalid time given!")
+            throw IllegalArgumentException("Invalid time given!")
         }
 
         if (weekdays.isEmpty()) {
             if (date.split("/").size != 2) {
-                throw InvalidParameterException("Invalid time given!")
+                throw IllegalArgumentException("Invalid time given!")
             }
             val startMonth: Int? = date.split("/")[0].toIntOrNull()
             val startDay: Int? = date.split("/")[1].toIntOrNull()
             if (startMonth == null || startDay == null) {
-                throw InvalidParameterException("Invalid date given!")
+                throw IllegalArgumentException("Invalid date given!")
             }
             return DateTime(currentYear, startMonth, startDay, startHour, startMinute)
         }

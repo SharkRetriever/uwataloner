@@ -4,9 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package me.rayzz.uwataloner.base
+package me.rayzz.uwataloner.utilities
 
+@Deprecated("Unused -- to be used in later version")
 object CharacterRepository {
-    val EN_DASH: String = "–"
-    val INSTRUCTORS_SEPARATOR = "; "
+    const val EN_DASH: String = "–"
+    const val INSTRUCTORS_SEPARATOR = "; "
 }

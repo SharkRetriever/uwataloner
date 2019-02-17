@@ -30,8 +30,9 @@
             android:paddingBottom="16dp"
             android:text="Find a study room" />
 
+        <!--
         <Button
-            android:id="@+id/auditCourseButton"
+            android:id="@+id/refreshCacheButton"
             android:onClick="auditCourseButtonOnClick"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -39,7 +40,7 @@
             android:layout_marginRight="20dp"
             android:paddingTop="16dp"
             android:paddingBottom="16dp"
-            android:text="Audit a course" />
+            android:text="Audit a course" />-->
 
         <Space
             android:layout_width="match_parent"

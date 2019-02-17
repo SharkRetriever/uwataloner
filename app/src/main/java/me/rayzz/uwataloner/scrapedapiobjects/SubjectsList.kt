@@ -21,13 +21,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
-package me.rayzz.uwataloner.generatedapiobjects
+package me.rayzz.uwataloner.scrapedapiobjects
 
-import me.rayzz.uwataloner.apiobjects.Subject
+import me.rayzz.uwataloner.apimodels.Subject
 
 /**
  * Stores a list of all known subjects, stored in Subject objects
  */
+@Deprecated("Unused -- to be refactored into newer service in later version")
 object SubjectsList {
     // GET /codes/subjects.{format}
     fun getSubjectsList(): List<Subject> {
