@@ -90,9 +90,9 @@ class StudyAloneProcessingActivity : AppCompatActivity() {
 
                 publishProgress("Fetching data from UWaterloo API")
                 val coursesInRoomTodayTimeFiltered: List<BuildingRoomCourse> = BuildingRoomCoursesService.getCourses(chosenBuilding, chosenRoom)
-                        .filter { it.occursToday(todayChosenDateTime) && it.endsDuringOrAfter(chosenTimeHour, chosenTimeMinute) }
+                        .filter { it.occursToday(todayChosenDateTime) }
                 val allRoomsInBuilding: List<String> = BuildingRoomsListMap.getBuildingRoomsListMap()[chosenBuilding] ?:
-                throw IllegalArgumentException(ExceptionStrings.INVALID_PARAMETERS_STRING + "chosenBuilding in showResults")
+                    throw IllegalArgumentException(ExceptionStrings.INVALID_PARAMETERS_STRING + "chosenBuilding in showResults")
 
                 publishProgress("Finding the gaps through the courses")
 

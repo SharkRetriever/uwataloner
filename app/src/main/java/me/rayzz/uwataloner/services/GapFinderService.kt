@@ -10,7 +10,7 @@ import me.rayzz.uwataloner.viewmodels.GapSlotCollection
 import org.joda.time.DateTime
 
 object GapFinderService {
-    // Assumption: all courses in the list either start or end today, where today is in America/Toronto time zone
+    // Assumption: all courses either start or end today, where today is in America/Toronto time zone
     fun findGapsForCoursesWithinDay(chosenBuilding: String, chosenRoom: String, courses: List<BuildingRoomCourse>,
                                     todayChosenDateTime: DateTime): GapSlotCollection {
         val gaps: List<GapSlot> = findGapsForSingleRoomCourses(courses, todayChosenDateTime)
@@ -24,9 +24,11 @@ object GapFinderService {
         }
     }
 
+    // Assumption: all courses either start or end today, where today is in America/Toronto time zone
     fun findGapsForMultipleRoomCoursesWithinDay(chosenBuilding: String, courses: List<BuildingRoomCourse>,
                                     todayChosenDateTime: DateTime, allRoomsInBuilding: List<String>): GapSlotCollection {
         // the courses should be separated into their own groups
+        // key: room, values: buildingRoomCourses
         val coursesByRoom: Map<String, List<BuildingRoomCourse>> = courses.groupBy { it.room }
         val gaps: List<GapSlot> = coursesByRoom.entries.flatMap { findGapsForSingleRoomCourses(it.value, todayChosenDateTime) }
 
@@ -49,17 +51,22 @@ object GapFinderService {
             val currentCourseEndDateTime: DateTime = currentCourse.getFirstEndDateTimeEndingDuringOrAfterNow(todayDateTime)
             val nextCourseStartDateTime: DateTime = nextCourse.getFirstStartDateTimeEndingDuringOrAfterNow(todayDateTime)
 
-            // skip 10-minute gaps
+            // skip if gap ends before the current time, or if there is less than 10 minutes between now and the gap end
+            if (nextCourseStartDateTime.minusMinutes(11).isBefore(todayDateTime))
+                continue
+
+            // skip 10-minute course gaps
             if (nextCourseStartDateTime.minusMinutes(11).isBefore(currentCourseEndDateTime))
                 continue
 
             gapTimes += GapSlot(currentCourseEndDateTime, nextCourseStartDateTime, currentCourse.building, currentCourse.room)
         }
 
+        // decide whether to add on first course and last course gaps
         if (sortedCourses.isNotEmpty()) {
             val firstCourse: BuildingRoomCourse = sortedCourses[0]
             val firstCourseStartTime: DateTime = firstCourse.getFirstStartDateTimeEndingDuringOrAfterNow(todayDateTime)
-            if (firstCourseStartTime.minusMinutes(11).isBefore(todayDateTime))
+            if (!firstCourseStartTime.minusMinutes(11).isBefore(todayDateTime))
                 gapTimes += GapSlot(todayDateTime, firstCourseStartTime, firstCourse.building, firstCourse.room)
 
             val lastCourse: BuildingRoomCourse = sortedCourses[sortedCourses.size - 1]
