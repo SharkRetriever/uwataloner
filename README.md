@@ -1,6 +1,11 @@
-# UWatALoner #
+# [DEPRECATED] UWatALoner #
 
-## tl;dr ##
+This repository has been deprecated for the following reason:  
+The app relies on the University of Waterloo Open Data API, which does not offer enough data to ensure that this app is fully reliable. For example, the API does not include the times and locations of some midterms, nor does it list information on when club meetings are held. Progress on this repository may continue if more endpoints are added to the API.
+
+------------------------------
+
+## Summary ##
 
 Tired of walking around University of Waterloo's MC Building, trying to find a room that doesn't have a class going on to study in? This app's for you.
 Have too much time on your hands, and want to audit a course, yet not sure where to find it? This app's for you.
